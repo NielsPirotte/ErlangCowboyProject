@@ -1,0 +1,304 @@
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Mama en Papa taxibedrijf</title>
+
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css">
+      
+    <!-- Bootstrap datapicker -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.7.1/css/bootstrap-datepicker.css">
+      
+    <!-- Bootstrap timepicker -->
+    <link rel="stylesheet"  href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-timepicker/0.5.2/css/bootstrap-timepicker.min.css">
+      
+  </head>
+  <body>
+     
+    <nav class="navbar navbar-inverse">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <a class="navbar-brand" href="#">Mama en Papa Taxibedrijf</a>
+        </div>
+        <div>
+          <ul class="nav navbar-nav">
+            <li class="active"><a href="#">Home</a></li>
+            <li><a href="./logs">Logbook</a></li>
+            <li><a href="./info">Information</a></li>
+            <li><a href="./logout">Log Out</a></li> 
+          </ul>
+        </div>
+      </div>
+    </nav>
+    
+    <div class="containter">  
+      
+    <div class="container">
+        <h2>Afspraken:</h2> 
+        <table class="table table-striped table-bordered">
+            <thead>
+                <tr>
+                    <th class="text-center">Tijdstip</th>
+                    <th class="text-center">Van</th>
+                    <th class="text-center">Naar</th>
+                    <th class="text-center">Middel</th>
+                    <th>Passagier</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for stamp in list %}
+                <tr>
+                    <td>{{ stamp.1 }}</td>
+                    <td> {{ stamp.2 }}</td>
+                    <td> {{ stamp.3 }}</td>
+                    <td> {{ stamp.4 }}</td>
+                    <td> {{ stamp.5 }}</td>
+                    <td class="text-center"> <a href="./verwijder?index={{ stamp.6 }}" class="checkbox" role="checkbox">X</a> </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>        
+    </div>
+      
+    <div class="container">
+        <h2>Maak een nieuwe afspraak:</h2>
+        <form action="/reserveer" method="get" id="form1">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-1 col-md-1 col-sm-1">Van:</div>
+            <div class="col-lg-4 col-md-5 col-sm-5"><input id="autocomplete1" onFocus="geolocate()" type="text" name="van" size="35"></div>
+            <div class="col-lg-1 col-md-1 col-sm-1">Naar:</div>
+            <div class="col-lg-4 col-md-5 col-sm-5"><input id="autocomplete2" onFocus="geolocate()" type="text" name="naar" size="35"></div>
+            <div class="col-lg-2 col-md-0 col-sm-0"></div>
+        </div>
+    </div>
+    <div class="container"><input id="time" type="hidden" name="duration" size="35" ></div>
+            
+        <h1></h1>
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-1">Datum:</div>
+            <div class='col-lg-3 col-md-3 col-sm-4 col-sm-6'>
+                <div class="input-group date" data-provide="datepicker">
+                    <input type="text" class="form-control" id="picker1" value="01/01/2018" name="datum">
+                    <span class="input-group-addon"><i class="glyphicon glyphicon-th"></i></span>
+                </div>
+            </div>
+        </div>
+    </div>
+            
+    <p></p>
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-1">Tijdstip:</div>
+            <div class='col-lg-3 col-md-3 col-sm-4 col-sm-6'>
+                <div class="input-group bootstrap-timepicker timepicker">
+                    <input type="text" class="form-control input-small" id="picker2" name="tijdstip">
+                    <span class="input-group-addon"><i class="glyphicon glyphicon-time"></i></span>
+                </div>
+            </div>
+        </div>
+    </div>
+            
+    <h2></h2>
+            
+    <h1></h1>    
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-1 col-md-1 col-sm-1">Middel:</div>
+            <div class="col-lg-6 col-md-6 col-sm-6">
+                 <label class="radio-inline"><input type="radio" name="mode" value="Auto" checked>Auto</label>
+                 <label class="radio-inline"><input type="radio" name="mode" value="Fiets">Fiets</label>
+            </div>
+            <div class="col-lg-5 col-md-5 col-sm-5"></div>
+        </div>        
+    </div>
+    <h1></h1>    
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-1 col-md-1 col-sm-1">Passagier:</div>
+            <div class="col-lg-6 col-md-6 col-sm-6">
+                 <label class="radio-inline"><input type="radio" name="passagier" value="True" checked>Ja</label>
+                 <label class="radio-inline"><input type="radio" name="passagier" value="False">Nee</label>
+            </div>
+            <div class="col-lg-5 col-md-5 col-sm-5"></div>
+        </div>        
+    </div>
+    </form>
+    <p></p>
+    <div class="container">
+        <button class="btn btn-default" role="button" onclick="checkCompletion()">Reserveer</button>
+    </div>
+    </div>
+      
+    <div class="container">
+    <h2>Live update:</h2>
+        <ul>
+            <li>Gebruiker: {{ req.gebruiker }}</li>
+            <li>Gebruiker_id: {{ req.gebruiker_id }} </li>
+            <li>Tijd: {{ req.tijd }}</li>
+            <li>Logcount: {{ req.logcount }}</li>
+        </ul>
+    </div>
+        
+    </div>
+    
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <!-- jQuery for bootstrap datepicker -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.7.1/js/bootstrap-datepicker.js"></script>
+    <!-- jQuery for bootstrap timepicker -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-timepicker/0.5.2/js/bootstrap-timepicker.min.js"></script>
+      
+    <script type="text/javascript">
+        $(function () {
+            $('#picker1').datepicker(
+                {
+                startDate: '-3d'
+                }
+            );
+            $('#picker2').timepicker(
+                {
+                defaultTime: 'current',
+                showMeridian: false
+                }
+            );
+        }); 
+    </script>
+    <script>
+        //2 autocomplete input objects from google maps api
+    	var autocomplete1, autocomplete2;
+        //directionservice from google maps api
+        var directionsService;
+        //vars
+        var van, naar;
+        var compVan = false;
+        var compNaar = false;
+        var time;
+        
+        //What to do when the place in autocomplete1 (Van) changes 
+       function changeEvent1(event){
+            var thisplace = autocomplete1.getPlace();
+            if (thisplace.geometry.location != null) {
+                van = thisplace.geometry.location;
+                compVan = true;
+            }
+            else {
+                compVan = false;
+            }
+        }
+        
+        //What to do when the place in autocomplete2 (Naar) changes 
+        function changeEvent2(event){
+            var thisplace = autocomplete2.getPlace();
+            if (thisplace.geometry.location != null) {
+                naar = thisplace.geometry.location;
+                compNaar = true;
+            }
+            else {
+                compNaar = false;
+            }
+        }
+        
+        //What to do when google places api is loaded
+    	function initAutocomplete() {
+        // Create the autocomplete object, restricting the search to geographical
+        // location types.
+        autocomplete1 = new google.maps.places.Autocomplete(
+            /** @type {!HTMLInputElement} */(document.getElementById('autocomplete1')),
+            {types: ['geocode']});
+            
+        google.maps.event.addListener(autocomplete1, 'place_changed', changeEvent1);
+            
+        autocomplete2 = new google.maps.places.Autocomplete(
+            /** @type {!HTMLInputElement} */(document.getElementById('autocomplete2')),
+            {types: ['geocode']});
+            
+        google.maps.event.addListener(autocomplete2, 'place_changed', changeEvent2);
+            
+        directionsService = new google.maps.DirectionsService();
+      }
+
+    
+    	function geolocate() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function(position) {
+            var geolocation = {
+              lat: position.coords.latitude,
+              lng: position.coords.longitude
+            };
+            var circle = new google.maps.Circle({
+              center: geolocation,
+              radius: position.coords.accuracy
+            });
+            autocomplete1.setBounds(circle.getBounds());
+            autocomplete2.setBounds(circle.getBounds());
+          });
+        }
+        }
+        
+        //Check if all fields of the form are completed
+        function checkCompletion() {
+            if(!compVan){
+                $('#autocomplete1').css("background-color", "red");
+                $('#autocomplete1').hide(300).show(300);            
+            }
+            else{
+                $('#autocomplete1').css("background-color", "white");
+            }
+            
+            if(!compNaar){
+                $('#autocomplete2').css("background-color", "red");
+                $('#autocomplete2').hide(300).show(300); 
+            }
+            else{
+                $('#autocomplete2').css("background-color", "white");
+            }
+
+            if(compNaar && compVan) {
+                calcRoute();
+            }
+        }
+        
+        //Calculate the route between 2
+        function calcRoute() {
+          var selectedMode = "DRIVING";
+          var modes = document.getElementsByName('mode');
+          
+          if(modes[1].checked){
+              selectedMode = "BICYCLING";
+          }
+          
+          var request = {
+              origin: van,
+              destination: naar,
+              // Note that Javascript allows us to access the constant
+              // using square brackets and a string value as its
+              // "property."
+              travelMode: google.maps.TravelMode[selectedMode]
+          };
+          directionsService.route(request, function(response, status) {
+            if (status == 'OK') {
+              time=response.routes[0].legs[0].duration.value;
+              document.getElementById("time").value = time;
+              document.getElementById("form1").submit();
+            }
+            else{
+                alert("Geen route gevonden!");
+            }
+          });
+        }
+
+    </script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBvtTAk-89QiTiFfiYvbZKbtJeHIaOP3nI &libraries=places&callback=initAutocomplete"async defer></script>
+    
+  </body>    
+</html>
