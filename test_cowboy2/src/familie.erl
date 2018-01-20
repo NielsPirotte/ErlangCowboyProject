@@ -24,9 +24,11 @@ init()->
 
   loop("","",[],[],"", intelligentie:start(), [], []).
 
-loop(Pa ,Ma , Kinderen , Resources,Fnaam, Intelligentie, Autos, Fietsen)->
+loop(Pa,Ma,Kinderen,Resources,Fnaam,Intelligentie,Autos,Fietsen)->
   receive
-    {nieuweWeek,PID}-> clearPersonen([Pa, Ma|Kinderen], PID);
+    {nieuweWeek,PID}-> 
+    	clearPersonen([Pa, Ma|Kinderen], PID),
+    	loop(Pa,Ma,Kinderen,Resources,Fnaam,Intelligentie,Autos,Fietsen);
     {getPersonen, PID} -> 
     	PID!getInfoPersonen([Pa, Ma|Kinderen], Fnaam, []),
     	loop(Pa,Ma,Kinderen,Resources,Fnaam, Intelligentie, Autos, Fietsen);

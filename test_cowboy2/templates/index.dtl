@@ -143,6 +143,8 @@
             <li>Gebruiker: {{ req.gebruiker }}</li>
             <li>Gebruiker_id: {{ req.gebruiker_id }} </li>
             <li>Tijd: {{ req.tijd }}</li>
+            <li>Dag: {{ req.dag }}</li>
+            <li>Week: {{ req.week }}</li>
             <li>Logcount: {{ req.logcount }}</li>
         </ul>
     </div>

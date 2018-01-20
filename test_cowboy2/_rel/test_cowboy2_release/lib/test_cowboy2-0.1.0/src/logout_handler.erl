@@ -8,6 +8,9 @@
 init(Req0, State) ->
 	%Login
   	interface:setPersoon(undefined),
-  	request_handler:init(Req0, State).
+  	Req = cowboy_req:reply(303,
+			 	#{<<"location">> => <<"./">>},
+				Req0),
+		{ok, Req, State}.
 
 terminate(_Reason, _Req, _State) -> ok.

@@ -37,11 +37,19 @@ loop(Bestuurder , Vervoer , Duur, Locatie,Toplevel,Ongeluk ,NieuweDuurdoorOngelu
                      end;
     {setBestuurder, PIDBestuurder} ->loop(PIDBestuurder,Vervoer,Duur,Locatie,Toplevel,Ongeluk,NieuweDuurdoorOngeluk);
     {setVervoer, PIDVervoer} ->  loop(Bestuurder,PIDVervoer,Duur,Locatie,Toplevel,Ongeluk,NieuweDuurdoorOngeluk);
-    {setDuur, DuurNieuw} -> loop(Bestuurder,Vervoer,DuurNieuw,Locatie,Toplevel,Ongeluk,NieuweDuurdoorOngeluk);
+    {setDuur, DuurNieuw} -> 
+    	SetV = if(DuurNieuw==[]) -> 0; 
+    		true -> DuurNieuw
+    		end,
+    	loop(Bestuurder,Vervoer,SetV,Locatie,Toplevel,Ongeluk,NieuweDuurdoorOngeluk);
     {setLocatie, LocatieNieuw} -> loop(Bestuurder,Vervoer,Duur,LocatieNieuw,Toplevel,Ongeluk,NieuweDuurdoorOngeluk);
     {setToplevel, PIDTl} -> loop(Bestuurder,Vervoer,Duur,Locatie,PIDTl,Ongeluk,NieuweDuurdoorOngeluk);
     {setOngeluk , NieuwOng} ->Toplevel!{log,"setOngeluk",[Ongeluk,NieuweDuurdoorOngeluk,Vervoer]}, loop(Bestuurder,Vervoer,Duur,Locatie,Toplevel,NieuwOng,NieuweDuurdoorOngeluk);
-    {setNieuweDuurOng,DuurOng}-> loop(Bestuurder,Vervoer,Duur,Locatie,Toplevel,Ongeluk,DuurOng);
+    {setNieuweDuurOng,DuurOng}-> 
+    	SetV = if(DuurOng==[]) -> 0; 
+    		true -> DuurOng
+    		end,
+    	loop(Bestuurder,Vervoer,Duur,Locatie,Toplevel,Ongeluk,SetV);
     {gearriveerdPass}->io:format("gearriveerd met ~p met vervoer : ~p op ~p \n",[Bestuurder , Vervoer,Locatie]),Toplevel!{log,"gearriveerdPassagier",[Vervoer,Bestuurder]},loop(Bestuurder , Vervoer, Duur,Locatie,Toplevel,Ongeluk,NieuweDuurdoorOngeluk)
   end.
 

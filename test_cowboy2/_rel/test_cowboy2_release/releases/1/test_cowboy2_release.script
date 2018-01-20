@@ -1,5 +1,5 @@
 %% coding: utf-8
-%% script generated at {2018,1,15} {11,44,23}
+%% script generated at {2018,1,20} {20,45,52}
 {script,
     {"test_cowboy2_release","1"},
     [{preLoaded,
@@ -182,8 +182,8 @@
      {primLoad,
          [auto,familie,fiets,index_depr_dtl,index_dtl,intelligentie,interface,
           log_handler,login_dtl,login_handler,logout_handler,logs_dtl,persoon,
-          request_handler,reserveer_handler,test_cowboy2_app,test_cowboy2_sup,
-          toplevel,vanNaar,verwijder_handler]},
+          request_handler,reserveer_handler,stop_handler,test_cowboy2_app,
+          test_cowboy2_sup,toplevel,vanNaar,verwijder_handler]},
      {path,["$ROOT/lib/sasl-3.1.1/ebin"]},
      {primLoad,
          [alarm_handler,erlsrv,format_lib_supp,misc_supp,rb,rb_format_supp,
@@ -600,8 +600,9 @@
                        [auto,familie,fiets,index_depr_dtl,index_dtl,
                         intelligentie,interface,log_handler,login_dtl,
                         login_handler,logout_handler,logs_dtl,persoon,
-                        request_handler,reserveer_handler,test_cowboy2_app,
-                        test_cowboy2_sup,toplevel,vanNaar,verwijder_handler]},
+                        request_handler,reserveer_handler,stop_handler,
+                        test_cowboy2_app,test_cowboy2_sup,toplevel,vanNaar,
+                        verwijder_handler]},
                    {registered,[test_cowboy2_sup,toplevel,interface]},
                    {applications,
                        [kernel,stdlib,wx,observer,runtime_tools,erlydtl,

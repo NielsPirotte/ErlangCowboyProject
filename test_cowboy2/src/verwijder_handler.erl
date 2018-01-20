@@ -13,6 +13,9 @@ init(Req0, State) ->
         %verwijder index uit lijst
         interface:remove(Index),	
 	
-    	request_handler:init(Req0, State).
+    	Req = cowboy_req:reply(303,
+			 	#{<<"location">> => <<"./">>},
+				Req0),
+		{ok, Req, State}.
 
 terminate(_Reason, _Req, _State) -> ok.

@@ -29,13 +29,20 @@
       </div>
     </nav>
     
-    <div class="containter">  
+    <div class="containter">
         <div class="container" style="border:2px solid #cecece">
-            <h2>Logboek:</h2>
+            <h2>Logboek:</h2> 
+            
             <div style="height:500px;overflow:auto;">
                 <table class="table table-striped table-bordered">
+                    <colgroup>
+                        <col span="1" style="width: 10%;">
+                        <col span="1" style="width: 45%;">
+                        <col span="1" style="width: 45%;">
+                    </colgroup>
                     <thead>
                         <tr>
+                        <th class="text-center">Nummer</th>
                         <th class="text-center">Logtype</th>
                         <th class="text-center">Data</th>
                         </tr>
@@ -45,14 +52,24 @@
                             <tr>
                             <td> {{ stamp.1 }}</td>
                             <td> {{ stamp.2 }}</td>
+                            <td> {{ stamp.3 }}</td>
                             </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
         </div>
+        <div class="container">
+            <div class="row">
+                <div class="col-sm-5 col-xs-5"></div>
+                <div class="col-sm-2 col-xs-2">
+                    <a href="./stop" class="btn btn-default">Start/Stop</a>
+                </div>
+                <div class="col-sm-5 col-xs-5"></div>
+            </div>
+        </div>
     </div>
-    <script>setTimeout(function(){location.reload();}, 10000);</script>
+    <!-- <script>setTimeout(function(){location.reload();}, 10000);</script> -->
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
     <!-- Latest compiled and minified JavaScript -->

@@ -126,7 +126,7 @@ start()->
 
 init()->
   ets:new(locaties , [duplicate_bag,named_table,public]),
-  ets:new(log,[named_table,duplicate_bag,public]),
+  ets:new(log,[named_table,ordered_set,public]),
   ets:new(objecten,[ordered_set,named_table,public]),
   ets:insert(objecten,{"passagier",passagier,"unbound","unbound",nul}),
   loop(-0.1,true, 0,[]).
@@ -138,7 +138,10 @@ loop(Tijd, Stop, Logcount,Families)->
     		PID!getInfoFamilies(Families, []), 
     		loop(Tijd, Stop, Logcount,Families);
     {getTijdEnLog, PID} ->
-    		PID!{Tijd,Logcount},
+    		PID!{Tijd, getDag(Tijd), Logcount},
+    		loop(Tijd, Stop, Logcount,Families);
+    {getDag, PID} ->
+    		PID!getDag(Tijd),
     		loop(Tijd, Stop, Logcount,Families);
     {lookup,Loc1} -> self()!{bericht,ets:lookup(locaties,Loc1)},loop(Tijd, Stop, Logcount,Families);
     {bericht,Message}-> erlang:display(Message),loop(Tijd, Stop, Logcount,Families);
@@ -155,10 +158,22 @@ loop(Tijd, Stop, Logcount,Families)->
     {updateDataFamilie,FNaam,PID,Pa,Ma,Kinders,Res}->ets:insert(objecten,{PID,FNaam, Pa, Ma, Kinders,Res}),loop(Tijd, Stop, Logcount,Families);
     {getobject , PID}-> self()!{bericht,ets:lookup(objecten,PID)},
       loop(Tijd, Stop, Logcount,Families);
-    {setTijd , Nieuwetijd}-> if(Nieuwetijd == 168.0)->
-      PID = self(),self()!{getTijd},getFamilies(Families,0.0,PID),self()!{addTijd}, getFamilies3(Families, self()),loop(0.0, Stop, Logcount,Families);
-                               true ->PID = self(),self()!{getTijd},getFamilies(Families,Nieuwetijd,PID),self()!{addTijd},loop(Nieuwetijd, Stop, Logcount,Families)
-                             end;
+    {setTijd , Nieuwetijd}-> 
+    	if(Nieuwetijd == 168.0)->
+      		PID = self(),
+      		self()!{getTijd},
+      		getFamilies(Families,0.0,PID),
+      		self()!{addTijd}, 
+      		getFamilies3(Families, self()), 
+      		interface!{nieuweWeek},
+      	 	loop(0.0, Stop, Logcount,Families);
+        true ->
+        	PID = self(),
+        	self()!{getTijd},
+        	getFamilies(Families,Nieuwetijd,PID),
+        	self()!{addTijd},
+        	loop(Nieuwetijd, Stop, Logcount,Families)
+        end;
     {addTijd} -> if(Stop == false) ->NTijd = trunc(Tijd+0.1,1),erlang:send_after(100,self(),{setTijd,NTijd}),loop(Tijd, Stop, Logcount,Families);
                    true ->self()!{log,"tijd gestopt", Tijd},loop(Tijd,Stop,Logcount,Families)
                  end;
@@ -186,6 +201,11 @@ loop(Tijd, Stop, Logcount,Families)->
     {getLocatiePers,PID}-> [{PID,_, _Naam, Locatie, _Rijbewijs}] = ets:lookup(objecten,PID),
       erlang:display(Locatie), loop(Tijd, Stop, Logcount,Families);
     {setFamilie , NieuweFam}->self()!{log,"insert nieuwe familie",NieuweFam},loop(Tijd,Stop,Logcount,[NieuweFam|Families]);
+    {toggle_stop} -> 
+    	if(Stop == false) -> self()!{veranderStop , true};
+    		true -> self()!{veranderStop , false}
+    	end,
+    	loop(Tijd, Stop,Logcount,Families);
     {veranderStop , NieuweStop} -> self()!{log , "veranderstop", NieuweStop},
 
       if(NieuweStop ==false )-> if(Families ==[])->self()!{log,"geen familie erin , dus tijd gaat niet omhoog",NieuweStop},loop(Tijd, NieuweStop,Logcount,Families);
@@ -295,10 +315,7 @@ maakAfspraak(Persoon,Dag,Van,Tot,Heenlocatie,Teruglocatie, Duratie, Passagier) -
 	ets:insert(locaties,{Heenlocatie, Teruglocatie, Duratie}),
 	ets:insert(locaties,{Teruglocatie, Heenlocatie, Duratie}),
 	toplevel!{maakAfspraak, Persoon, Dag, Van, Tot, Heenlocatie, Teruglocatie,Passagier},
-	io:format("~p~n~p~n~p~n~p~n~p~n~p~n~p~n~p~n",[maakAfspraak, Persoon, Dag, Van, Tot, Heenlocatie, Teruglocatie,Passagier]),
-	receive
-		Result -> Result
-	end.
+	io:format("~p~n~p~n~p~n~p~n~p~n~p~n~p~n~p~n",[maakAfspraak, Persoon, Dag, Van, Tot, Heenlocatie, Teruglocatie,Passagier]).
 	
 verwijderAfspraak(index) ->
 	toplevel!{verwijder, index, self()},
@@ -349,14 +366,14 @@ getInfoFamilies([F|Fs], Out) ->
 	
   	
 format([], []) -> [];
-format([[{_, Log, Data}]], Out) ->
+format([[{Nummer, Log, Data}]], Out) ->
 	LogToBinary = list_to_binary(Log),
 	DataToString = io_lib:format("~p",[Data]), 
-	[[LogToBinary]++DataToString|Out];
-format([[{_, Log, Data}]|Rs], Out) -> 
+	[[Nummer,LogToBinary]++DataToString|Out];
+format([[{Nummer, Log, Data}]|Rs], Out) -> 
 	LogToBinary = list_to_binary(Log),
 	DataToString = io_lib:format("~p",[Data]), 
-	format(Rs, [[LogToBinary]++DataToString|Out]).
+	format(Rs, [[Nummer, LogToBinary]++DataToString|Out]).
 	
 
 

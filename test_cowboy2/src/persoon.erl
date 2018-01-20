@@ -28,7 +28,10 @@ loop(Locatie, Rijbewijs, Naam,Agenda)->
       PIDP = self(),
       PID!{updateDataP, Naam, PIDP, Locatie, Rijbewijs},
       loop(Locatie, Rijbewijs,  Naam,Agenda);
-    {clearAgenda, PID}-> PID!{log, "Clear agenda", Naam}, ets:delete_all_objects(Agenda), loop(Locatie, Rijbewijs, Naam,Agenda);
+    {clearAgenda, PID}-> 
+    	PID!{log, "Clear agenda", Naam}, 
+    	ets:delete_all_objects(Agenda), 
+    	loop(Locatie, Rijbewijs, Naam,Agenda);
     {getLocatie} -> erlang:display(Locatie),  loop(Locatie, Rijbewijs, Naam,Agenda);
     {getRijbewijs}->erlang:display(Rijbewijs), loop(Locatie, Rijbewijs, Naam,Agenda);
     {verplaats, PIDVervoer, NieuweLocatie, PID}->PIDVervoer!{setLocatie, NieuweLocatie, PID}, self()!{setLocatie, NieuweLocatie, PID}, loop(Locatie, Rijbewijs, Naam,Agenda);
@@ -98,11 +101,12 @@ getVervoerPass([{_,_,_,Pass}])->Pass.
 getTypeVervoer([{_,Type,_,_,_}])->Type.
 
 
-getDuur(_,[])-> [];
+%Mag geen lege haken returnen!!
+getDuur(_,[])-> 0;
 getDuur(Loc2,[{_,Locatie2,Duur}])-> if(Locatie2 == Loc2) -> Duur;
                                       true -> 
                                       	io:format("persoon (103): Duur niet gevonden!~n",[]),
-                                      	[]
+                                      	0
                                     end;
 getDuur(Loc2 , [{_,Locatie2 , Duur}|XS])-> if(Locatie2 == Loc2) -> Duur;
                                              true -> getDuur(Loc2,XS)

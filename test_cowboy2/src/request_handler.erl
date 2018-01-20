@@ -11,13 +11,19 @@ init(Req0, State) ->
 	
 	case (Persoon == undefined) of
 		false ->
+			io:format("loading page~n", []),
+			io:format("loading list:~n", []),
 			List = interface:get(),
+			io:format("END loading list~n", []),
 			Gebruiker = interface:getNaamPersoon(),
 			ID = interface:getPersoon(),
-			{Tijd, LogCount} = interface:getTijdEnLog(),
+			{Tijd, Dag, LogCount} = interface:getTijdEnLog(),
+			Week = interface:getHuidigeWeek(),
 			ReqProps =
 				[
 				{<<"tijd">>, Tijd},
+				{<<"dag">>, convertDag(Dag)},
+				{<<"week">>, Week},
 				{<<"logcount">>, LogCount},
 				{<<"gebruiker">>, Gebruiker},
 				{<<"gebruiker_id">>, ID}
@@ -44,6 +50,17 @@ init(Req0, State) ->
 
 terminate(_Reason, _Req, _State) ->
 	ok.
+	
+convertDag(Dag) ->
+	case Dag of
+		1 -> <<"Maandag">>;
+		2 -> <<"Dinsdag">>;
+		3 -> <<"Woensdag">>;
+		4 -> <<"Donderdag">>;
+		5 -> <<"Vrijdag">>;
+		6 -> <<"Zaterdag">>;
+		7 -> <<"Zondag">>
+	end.
 
 %isEmpty([]) -> true;
 %isEmpty(_) -> false.

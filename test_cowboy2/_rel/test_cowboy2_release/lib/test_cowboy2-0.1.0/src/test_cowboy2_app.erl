@@ -14,6 +14,7 @@ start(_Type, _Args) ->
 			{"/logs", log_handler, []},
 			{"/login", login_handler, []},
 			{"/logout", logout_handler, []},
+			{"/stop", stop_handler, []},
 			{"/info", cowboy_static, {priv_file, test_cowboy2, "www/info.html"}}
 		]}
 	]),

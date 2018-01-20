@@ -12,9 +12,24 @@ init(Req0, State) ->
 	%Login
 	#{persoon := Persoon} = 
 		cowboy_req:match_qs([{persoon, [],undefined}], Req0),
-  	
+		
   	PID = list_to_pid(binary_to_list(Persoon)),
-  	interface:setPersoon(PID),
-  	request_handler:init(Req0, State).
+  	case geldig(PID) of
+  	true ->
+  		interface:setPersoon(PID),
+  		Req = cowboy_req:reply(303,
+			 	#{<<"location">> => <<"./">>},
+				Req0),
+		{ok, Req, State};
+  	false ->
+  		io:format("Persoon niet geldig!~n",[]),
+  		Req = cowboy_req:reply(303,
+			 	#{<<"location">> => <<"./">>},
+				Req0),
+		{ok, Req, State}
+	end.
 
 terminate(_Reason, _Req, _State) -> ok.
+
+geldig(Persoon) when is_pid(Persoon) -> true;
+geldig(_) -> false.
