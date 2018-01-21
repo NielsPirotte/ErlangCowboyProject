@@ -7,6 +7,8 @@
 init(Req0, State) ->
 	interface:toggle_stop(),
 	io:format("toggling stop~n", []),
+	
+	%Ga naar logs (./logs)
   	Req = cowboy_req:reply(303,
 		 	#{<<"location">> => <<"./logs">>},
 			Req0),

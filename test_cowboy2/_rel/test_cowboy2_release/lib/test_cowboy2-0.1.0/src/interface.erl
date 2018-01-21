@@ -1,6 +1,6 @@
 -module(interface).
 
--export([start/0, init/0, loop/4, get/0, insert/9, remove/1, stop/0, setPersoon/1, getPersoon/0, getNaamPersoon/0, getLoginInfo/0, getTijdEnLog/0, maakAfspraak/7, getHuidigeWeek/0, week/1, toggle_stop/0]).
+-export([start/0, init/0, loop/4, get/0, insert/9, remove/1, stop/0, setPersoon/1, getPersoon/0, getNaamPersoon/0, getLoginInfo/0, getTijdEnLog/0, maakAfspraak/7, getHuidigeWeek/0, week/1, toggle_stop/0, getLogs/0]).
 
 start() ->
   Pid = spawn(?MODULE, init, []),
@@ -32,7 +32,7 @@ loop(A, Aantal, Persoon, Week) ->
       		true -> continue
       		end
       	end,
-      loop(A, Aantal + 1, Persoon, Week);
+        loop(A, Aantal + 1, Persoon, Week);
     {remove, Index} ->
       Check = ets:delete(A, Index),
       if (Check) -> loop(A, Aantal -1, Persoon, Week);
@@ -67,8 +67,11 @@ loop(A, Aantal, Persoon, Week) ->
     	io:format("te reserveren: ~p~n", [Check]),
     	reserveerAfspraken(Check),
     	loop(A, Aantal, Persoon, Week+1);
-    {getWeek, PID} -> PID!Week, loop(A, Aantal, Persoon, Week);
-    {stop} -> {ok, true}
+    {getWeek, PID} -> 
+    	PID!Week, 
+    	loop(A, Aantal, Persoon, Week);
+    {stop} -> 
+    	{ok, true}
   end.
 
 get() ->
@@ -81,7 +84,6 @@ maakAfspraak(Dag,Van,Tot,Heenlocatie,Teruglocatie,Duratie,Passagier) ->
 	interface!{maakAfspraak, Dag,Van,Tot,binary_to_list(Heenlocatie),binary_to_list(Teruglocatie),Duratie,Passagier}.
   
 setPersoon(Persoon) ->
-
 	interface!{setPersoon, Persoon}.
 
 getPersoon() ->
@@ -139,7 +141,8 @@ week(Datum) ->
 	end.
 
 %Reserveert afspraken van een lijst uit de afspraken in de interface
-reserveerAfspraken([]) -> io:format("Geen nieuwe afspraken via webinterface~n", []), no_reservation_possible;
+reserveerAfspraken([]) -> 
+	io:format("Geen nieuwe afspraken via webinterface~n", []), no_reservation_possible;
 reserveerAfspraken([X]) -> 
 	[DayOfWeek, VertrekU, AankomstU, Van, Naar, Duratie, Passagier] = X,
 	interface:maakAfspraak(DayOfWeek, VertrekU, AankomstU, Van, Naar, Duratie, Passagier);
@@ -147,7 +150,8 @@ reserveerAfspraken([X|Xs]) ->
 	{DayOfWeek, VertrekU, AankomstU, Van, Naar, Duratie, Passagier} = X,
 	interface:maakAfspraak(DayOfWeek, VertrekU, AankomstU, Van, Naar, Duratie, Passagier),
 	reserveerAfspraken(Xs);
-reserveerAfspraken(_) -> io:format("error input~n", []), no_reservation_possible.
+reserveerAfspraken(_) -> 
+	io:format("error input~n", []), no_reservation_possible.
 
 toggle_stop() ->
 	toplevel!{toggle_stop}.
@@ -157,7 +161,6 @@ getDag() ->
 	receive
 		Result -> Result
 	end.
-
 	
-
-
+getLogs() ->
+	toplevel:getLogs().

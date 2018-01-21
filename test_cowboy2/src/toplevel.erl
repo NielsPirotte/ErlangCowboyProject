@@ -114,11 +114,6 @@ generateData() ->
   PID!{veranderStop , false},
   erlang:send_after(1000000, PID,{veranderStop,true}).
 
-
-
-
-
-
 start()->
   Pid= spawn(?MODULE,init ,[]),
   register(toplevel, Pid),
@@ -131,9 +126,11 @@ init()->
   ets:insert(objecten,{"passagier",passagier,"unbound","unbound",nul}),
   loop(-0.1,true, 0,[]).
 
-loop(Tijd, Stop, Logcount,Families)->
+loop(Tijd, Stop, Logcount,Families) ->
   receive
-    {insert , Loc1 , Loc2 , Duur}-> ets:insert(locaties,{Loc1,Loc2 , Duur}),loop(Tijd, Stop, Logcount,Families);
+    {insert , Loc1 , Loc2 , Duur}-> 
+    	ets:insert(locaties,{Loc1,Loc2 , Duur}),
+    	loop(Tijd, Stop, Logcount,Families);
     {families, PID} ->
     		PID!getInfoFamilies(Families, []), 
     		loop(Tijd, Stop, Logcount,Families);
@@ -143,22 +140,31 @@ loop(Tijd, Stop, Logcount,Families)->
     {getDag, PID} ->
     		PID!getDag(Tijd),
     		loop(Tijd, Stop, Logcount,Families);
-    {lookup,Loc1} -> self()!{bericht,ets:lookup(locaties,Loc1)},loop(Tijd, Stop, Logcount,Families);
-    {bericht,Message}-> erlang:display(Message),loop(Tijd, Stop, Logcount,Families);
+    {lookup,Loc1} -> 
+    	self()!{bericht,ets:lookup(locaties,Loc1)},
+    	loop(Tijd, Stop, Logcount,Families);
+    {bericht,Message} -> 
+    	erlang:display(Message),
+    	loop(Tijd, Stop, Logcount,Families);
     {add, PID} ->
       PID!{updateData, self()},
       loop(Tijd,Stop, Logcount,Families);
     {updateDataP, Naam, PIDPersoon, Locatie, Rijbewijs} ->
       ets:insert(objecten, {PIDPersoon, persoon, Naam, Locatie, Rijbewijs}),
       loop(Tijd, Stop, Logcount,Families);
-    {updateDataA, Naam, PID, Locatie,VN} -> ets:insert(objecten, {PID, auto, Naam , Locatie,VN}),
-      loop(Tijd, Stop, Logcount,Families);
-    {updateDataF, Naam, PID, Locatie,VN} -> ets:insert(objecten, {PID, fiets, Naam , Locatie,VN}),
-      loop(Tijd, Stop, Logcount,Families);
-    {updateDataFamilie,FNaam,PID,Pa,Ma,Kinders,Res}->ets:insert(objecten,{PID,FNaam, Pa, Ma, Kinders,Res}),loop(Tijd, Stop, Logcount,Families);
-    {getobject , PID}-> self()!{bericht,ets:lookup(objecten,PID)},
-      loop(Tijd, Stop, Logcount,Families);
-    {setTijd , Nieuwetijd}-> 
+    {updateDataA, Naam, PID, Locatie,VN} -> 
+    	ets:insert(objecten, {PID, auto, Naam , Locatie,VN}),
+      	loop(Tijd, Stop, Logcount,Families);
+    {updateDataF, Naam, PID, Locatie,VN} -> 
+    	ets:insert(objecten, {PID, fiets, Naam , Locatie,VN}),
+      	loop(Tijd, Stop, Logcount,Families);
+    {updateDataFamilie,FNaam,PID,Pa,Ma,Kinders,Res} ->
+    	ets:insert(objecten,{PID,FNaam, Pa, Ma, Kinders,Res}),
+    	loop(Tijd, Stop, Logcount,Families);
+    {getobject , PID} -> 
+    	self()!{bericht,ets:lookup(objecten,PID)},
+      	loop(Tijd, Stop, Logcount,Families);
+    {setTijd , Nieuwetijd} -> 
     	if(Nieuwetijd == 168.0)->
       		PID = self(),
       		self()!{getTijd},
@@ -174,15 +180,30 @@ loop(Tijd, Stop, Logcount,Families)->
         	self()!{addTijd},
         	loop(Nieuwetijd, Stop, Logcount,Families)
         end;
-    {addTijd} -> if(Stop == false) ->NTijd = trunc(Tijd+0.1,1),erlang:send_after(100,self(),{setTijd,NTijd}),loop(Tijd, Stop, Logcount,Families);
-                   true ->self()!{log,"tijd gestopt", Tijd},loop(Tijd,Stop,Logcount,Families)
-                 end;
-    {getTijd}->  IntTijd = float_to_integer(Tijd),Dag = getDag(Tijd),TijdVar = Tijd-(Dag-1)*24,if(IntTijd == true)->io:format("dag: ~p uur: :~p  \n",[Dag,TijdVar]),self()!{log,"setTijd",Tijd},
-      if(TijdVar==0.0)-> erlang:display("nieuwe dag"),getFamilies2(Families,self(),Dag),loop(Tijd, Stop, Logcount,Families);
-        true->loop(Tijd, Stop, Logcount,Families) %%pas gaan pollen op dagwissel
-      end;
-                                                                                                 true->loop(Tijd, Stop, Logcount,Families)
-                                                                                               end;
+    {addTijd} -> 
+    	if(Stop == false) ->
+    		NTijd = trunc(Tijd+0.1,1),
+    		erlang:send_after(100,self(),{setTijd,NTijd}),
+    		loop(Tijd, Stop, Logcount,Families);
+        true -> 
+        	self()!{log,"tijd gestopt", Tijd},
+        	loop(Tijd,Stop,Logcount,Families)
+        end;
+    {getTijd} ->  
+    	IntTijd = float_to_integer(Tijd),
+    	Dag = getDag(Tijd),
+    	TijdVar = Tijd-(Dag-1)*24,
+    	if(IntTijd == true) ->
+    		io:format("dag: ~p uur: :~p  \n",[Dag,TijdVar]),
+    		self()!{log,"setTijd",Tijd},
+      		if(TijdVar==0.0) -> 
+      			erlang:display("nieuwe dag"),
+      			getFamilies2(Families,self(),Dag),loop(Tijd, Stop, Logcount,Families);
+        	true->loop(Tijd, Stop, Logcount,Families) %%pas gaan pollen op dagwissel
+      		end;
+       	true ->
+                loop(Tijd, Stop, Logcount,Families)
+        end;
 
     {gaNaar , Bestuurder, Vervoer , ReisDuur, ReisLocatie,PIDVN} ->
       PIDVN!{setToplevel , self()},
@@ -192,94 +213,156 @@ loop(Tijd, Stop, Logcount,Families)->
       PIDVN!{setLocatie , ReisLocatie},
       PIDVN!{gaNaarErgens}, loop(Tijd,Stop, Logcount,Families);
 
-    {getReisDuur , _Van , ReisLocatie, PersLocatie, PIDVN,Vervoer,Pers} -> if(PersLocatie == ReisLocatie) -> io:format("~p is al op Bestemming: ~p \n",[Pers,PersLocatie]),loop(Tijd,Stop, Logcount,Families);
-                                                                            true ->ReisDuur = getDuur(ReisLocatie,ets:lookup(locaties,PersLocatie)),
-                                                                              self()!{gaNaar ,Pers, Vervoer , ReisDuur , ReisLocatie,PIDVN} , loop(Tijd,Stop, Logcount,Families)
-                                                                          end;
-    {log, String, Value }-> NieuweLogcount = Logcount +1,
-      ets:insert(log, {Logcount, String, Value}), loop(Tijd, Stop,NieuweLogcount,Families);
-    {getLocatiePers,PID}-> [{PID,_, _Naam, Locatie, _Rijbewijs}] = ets:lookup(objecten,PID),
-      erlang:display(Locatie), loop(Tijd, Stop, Logcount,Families);
-    {setFamilie , NieuweFam}->self()!{log,"insert nieuwe familie",NieuweFam},loop(Tijd,Stop,Logcount,[NieuweFam|Families]);
+    {getReisDuur , _Van , ReisLocatie, PersLocatie, PIDVN,Vervoer,Pers} -> 
+    	if(PersLocatie == ReisLocatie) -> 
+    		io:format("~p is al op Bestemming: ~p \n",[Pers,PersLocatie]),
+    		loop(Tijd,Stop, Logcount,Families);
+	true ->
+		ReisDuur = getDuur(ReisLocatie,ets:lookup(locaties,PersLocatie)),
+           	self()!{gaNaar, Pers, Vervoer, ReisDuur, ReisLocatie, PIDVN},
+           	loop(Tijd,Stop, Logcount,Families)
+	end;
+    {log, String, Value } -> 
+    	NieuweLogcount = Logcount +1,
+      	ets:insert(log, {Logcount, String, Value}), 
+      	loop(Tijd, Stop,NieuweLogcount,Families);
+    {getLocatiePers,PID} -> 
+    	[{PID,_, _Naam, Locatie, _Rijbewijs}] = ets:lookup(objecten,PID),
+      	erlang:display(Locatie), loop(Tijd, Stop, Logcount,Families);
+    {setFamilie , NieuweFam} ->
+    	self()!{log,"insert nieuwe familie",NieuweFam},
+    	loop(Tijd,Stop,Logcount,[NieuweFam|Families]);
     {toggle_stop} -> 
     	if(Stop == false) -> self()!{veranderStop , true};
     		true -> self()!{veranderStop , false}
     	end,
     	loop(Tijd, Stop,Logcount,Families);
-    {veranderStop , NieuweStop} -> self()!{log , "veranderstop", NieuweStop},
+    {veranderStop , NieuweStop} -> 
+    	self()!{log , "veranderstop", NieuweStop},
+	if(NieuweStop==false) -> 
+		if(Families == []) ->
+			self()!{log,"geen familie erin, dus tijd gaat niet omhoog",NieuweStop},
+			loop(Tijd, NieuweStop,Logcount,Families);
+                true->
+                	self()!{addTijd},
+                	self()!{log,"Er is een familie",NieuweStop},
+                	loop(Tijd, NieuweStop,Logcount,Families)
+                end;
+        true ->
+        	loop(Tijd, NieuweStop,Logcount,Families)
+      	end;
 
-      if(NieuweStop ==false )-> if(Families ==[])->self()!{log,"geen familie erin , dus tijd gaat niet omhoog",NieuweStop},loop(Tijd, NieuweStop,Logcount,Families);
-                                  true->self()!{addTijd},self()!{log,"Er is een familie",NieuweStop},loop(Tijd, NieuweStop,Logcount,Families)
-                                end;
-        true ->loop(Tijd, NieuweStop,Logcount,Families)
-      end;
-
-    {maakAfspraak,Persoon,Van,Tot,HeenLocatie,TerugLocatie,IsPassagier}->
-      self()!{checkPersoon,Persoon,Van,Tot,HeenLocatie,TerugLocatie,IsPassagier,Families},
-      loop(Tijd, Stop, Logcount,Families);
+    %Maak afspraak op dezelfde dag!
+    {maakAfspraak,Persoon,Van,Tot,HeenLocatie,TerugLocatie,IsPassagier} ->
+      	self()!{checkPersoon,Persoon,Van,Tot,HeenLocatie,TerugLocatie,IsPassagier,Families},
+      	loop(Tijd, Stop, Logcount,Families);
 
     {checkPersoon,Persoon,Van,Tot,HeenLocatie,TerugLocatie,IsPassagier,Fam}->
       %%als men alle families overlopen heeft gaat deze Fam leeg zijn
-      if(Fam == []) -> io:format("~p zit in geen enkele familie \n",[Persoon]), loop(Tijd, Stop, Logcount,Families);
-        true-> Laatste = lists:last(Fam),
-          Laatste!{checkPersoon,self(),Persoon,Van ,Tot ,HeenLocatie,TerugLocatie,IsPassagier,Fam},
-          loop(Tijd, Stop, Logcount,Families)
+      if(Fam == []) -> 
+      	io:format("~p zit in geen enkele familie \n",[Persoon]), 
+      	loop(Tijd, Stop, Logcount,Families);
+      true-> 
+      	Laatste = lists:last(Fam),
+        Laatste!{checkPersoon,self(),Persoon,Van ,Tot ,HeenLocatie,TerugLocatie,IsPassagier,Fam},
+        loop(Tijd, Stop, Logcount,Families)
       end;
     {erin,Persoon,Van,Tot,HeenLocatie,TerugLocatie,IsPassagier,Erin,Fam}->
       %%enkel deze code nog aanpassen voor naar intelligentie te gaan! code kan volledig zelfstandig tot hier geraken
       %%met lists:last(Fam) kan je familie opvragen waar de persoon bijhoort en zo kan men uit die familie de intelligentiePID eruit halen!
-      if(Erin == true)-> lists:last(Fam)!{addAfspraak, Van, Tot, HeenLocatie, TerugLocatie, IsPassagier, Persoon, self()},loop(Tijd, Stop, Logcount,Families);
-        true->FamZonder=lists:delete(lists:last(Fam),Fam),self()!{checkPersoon,Persoon,Van,Tot,HeenLocatie,TerugLocatie,IsPassagier,FamZonder},loop(Tijd, Stop, Logcount,Families)
+      if(Erin == true) -> 
+      	lists:last(Fam)!{addAfspraak, Van, Tot, HeenLocatie, TerugLocatie, IsPassagier, Persoon, self()},
+      	loop(Tijd, Stop, Logcount,Families);
+      true ->
+      	FamZonder=lists:delete(lists:last(Fam),Fam),
+      	self()!{checkPersoon,Persoon,Van,Tot,HeenLocatie,TerugLocatie,IsPassagier,FamZonder},
+      	loop(Tijd, Stop, Logcount,Families)
       %%weeral gaan checken maar de laatste familie eruit gegooit!
       end;
-    {nieuweAfspraak, Persoon,Van,Tot,HeenLocatie,TerugLocatie,IsPassagier}->
+    {nieuweAfspraak, Persoon,Van,Tot,HeenLocatie,TerugLocatie,IsPassagier} ->
       self()!{checkPersoonPol,Persoon,Van,Tot,HeenLocatie,TerugLocatie,IsPassagier,Families},
       loop(Tijd, Stop, Logcount,Families);
-    {checkPersoonPol,Persoon,Van,Tot,HeenLocatie,TerugLocatie,IsPassagier,Fam}->
+      
+    {checkPersoonPol,Persoon,Van,Tot,HeenLocatie,TerugLocatie,IsPassagier,Fam} ->
       %%als men alle families overlopen heeft gaat deze Fam leeg zijn
-      if(Fam == []) -> io:format("~p zit in geen enkele familie \n",[Persoon]), loop(Tijd, Stop, Logcount,Families);
-        true-> Laatste = lists:last(Fam),
-          Laatste!{checkPersoonPol,self(),Persoon,Van ,Tot ,HeenLocatie,TerugLocatie,IsPassagier,Fam},
-          loop(Tijd, Stop, Logcount,Families)
+      if(Fam == []) -> 
+      	io:format("~p zit in geen enkele familie \n",[Persoon]), 
+      	loop(Tijd, Stop, Logcount,Families);
+      true -> 
+        Laatste = lists:last(Fam),
+        Laatste!{checkPersoonPol,self(),Persoon,Van ,Tot ,HeenLocatie,TerugLocatie,IsPassagier,Fam},
+        loop(Tijd, Stop, Logcount,Families)
       end;
     {erinPol,Persoon,Van,Tot,HeenLocatie,TerugLocatie,IsPassagier,Erin,Fam}->
       %%enkel deze code nog aanpassen voor naar intelligentie te gaan! code kan volledig zelfstandig tot hier geraken
       %%met lists:last(Fam) kan je familie opvragen waar de persoon bijhoort en zo kan men uit die familie de intelligentiePID eruit halen!
-      if(Erin == true)->lists:last(Fam)!{nieuweAfspraak, Van, Tot, HeenLocatie, TerugLocatie, IsPassagier, Persoon, self()},loop(Tijd, Stop, Logcount,Families);
-        true->FamZonder=lists:delete(lists:last(Fam),Fam),self()!{checkPersoon,Persoon,Van,Tot,HeenLocatie,TerugLocatie,IsPassagier,FamZonder},loop(Tijd, Stop, Logcount,Families)
-      %%weeral gaan checken maar de laatste familie eruit gegooit!
+      if(Erin == true)->
+      	lists:last(Fam)!{nieuweAfspraak, Van, Tot, HeenLocatie, TerugLocatie, IsPassagier, Persoon, self()},
+      	loop(Tijd, Stop, Logcount,Families);
+      true->
+     	FamZonder=lists:delete(lists:last(Fam),Fam),
+     	self()!{checkPersoon,Persoon,Van,Tot,HeenLocatie,TerugLocatie,IsPassagier,FamZonder},
+     	loop(Tijd, Stop, Logcount,Families)
+        %%weeral gaan checken maar de laatste familie eruit gegooit!
       end;
-    {maakAfspraak,Persoon,Dag,Van,Tot,HeenLocatie,TerugLocatie,IsPassagier}-> DagTL = getDag(Tijd),
-      if(Dag == DagTL)-> if(Van<Tot)->
-        self()!{nieuweAfspraak, Persoon,(Dag-1)*24+Van,(Dag-1)*24+Tot,HeenLocatie,TerugLocatie,IsPassagier},loop(Tijd, Stop, Logcount,Families);
-                           true->self()!{nieuweAfspraak, Persoon,(Dag-1)*24+Van,Dag*24+Tot,HeenLocatie,TerugLocatie,IsPassagier},loop(Tijd, Stop, Logcount,Families)
-                         end;
-        true->if(Van<Tot)->
-          self()!{maakAfspraak,Persoon,(Dag-1)*24+Van,(Dag-1)*24+Tot,HeenLocatie,TerugLocatie,IsPassagier},loop(Tijd, Stop, Logcount,Families);
-                true->self()!{maakAfspraak,Persoon,(Dag-1)*24+Van,Dag*24+Tot,HeenLocatie,TerugLocatie,IsPassagier},loop(Tijd, Stop, Logcount,Families)
-              end
-      end
-
+    {maakAfspraak,Persoon,Dag,Van,Tot,HeenLocatie,TerugLocatie,IsPassagier} -> 
+    	DagTL = getDag(Tijd),
+      	if(Dag == DagTL) -> 
+      		if(Van<Tot)->
+        		self()!{nieuweAfspraak, Persoon,(Dag-1)*24+Van,(Dag-1)*24+Tot,HeenLocatie,TerugLocatie,IsPassagier},
+        		loop(Tijd, Stop, Logcount,Families);
+		true ->
+			self()!{nieuweAfspraak, Persoon,(Dag-1)*24+Van,Dag*24+Tot,HeenLocatie,TerugLocatie,IsPassagier},
+			loop(Tijd, Stop, Logcount,Families)
+                end;
+        true ->
+        	if(Van<Tot) ->
+          		self()!{maakAfspraak,Persoon,(Dag-1)*24+Van,(Dag-1)*24+Tot,HeenLocatie,TerugLocatie,IsPassagier},
+          		loop(Tijd, Stop, Logcount,Families);
+                true ->
+                	self()!{maakAfspraak,Persoon,(Dag-1)*24+Van,Dag*24+Tot,HeenLocatie,TerugLocatie,IsPassagier},
+                	loop(Tijd, Stop, Logcount,Families)
+              	end
+      	end
   end.
 
 getDuur(_,[])-> [];
-getDuur(Loc2,[{_,Locatie2,Duur}])->if(Locatie2 == Loc2) -> Duur;
-                                     true -> []
-                                   end;
-getDuur(Loc2 , [{_,Locatie2 , Duur}|XS])-> if(Locatie2 == Loc2) -> Duur;
-                                             true -> getDuur(Loc2,XS)
-                                           end.
-getFamilies([],_,PID)->PID!{bericht,"nog geen familie toegevoegd!"},PID!{log,"getFamilie","geen families"};
-getFamilies([X],Tijd,PID)->X!{checkAfspraak,Tijd,PID};
-getFamilies([X|XS],Tijd,PID)->X!{checkAfspraak,Tijd,PID},getFamilies(XS,Tijd,PID).
+getDuur(Loc2,[{_,Locatie2,Duur}]) ->
+	if(Locatie2 == Loc2) -> 
+		Duur;
+	true -> 
+		[]
+        end;
+getDuur(Loc2 , [{_,Locatie2 , Duur}|XS]) -> 
+	if(Locatie2 == Loc2) -> 
+		Duur;
+        true -> 
+        	getDuur(Loc2,XS)
+        end.
+        
+getFamilies([],_,PID) ->
+	PID!{bericht,"nog geen familie toegevoegd!"},
+	PID!{log,"getFamilie","geen families"};
+getFamilies([X],Tijd,PID) ->
+	X!{checkAfspraak,Tijd,PID};
+getFamilies([X|XS],Tijd,PID) ->
+	X!{checkAfspraak,Tijd,PID},
+	getFamilies(XS,Tijd,PID).
 
-getFamilies2([],PID,_)->PID!{niks};%%error control voor lege familie
-getFamilies2([X],PID,Dag)->X!{generateFixedAgenda,Dag, PID};
-getFamilies2([X|XS],PID,Dag)->X!{generateFixedAgenda,Dag, PID},getFamilies2(XS,PID,Dag).
+getFamilies2([],PID,_) ->
+	PID!{niks};%%error control voor lege familie
+getFamilies2([X],PID,Dag) ->
+	X!{generateFixedAgenda,Dag, PID};
+getFamilies2([X|XS],PID,Dag) ->
+	X!{generateFixedAgenda,Dag, PID},
+	getFamilies2(XS,PID,Dag).
 
-getFamilies3([],PID)->PID!{niks};%%error control voor lege familie
-getFamilies3([X],PID)->X!{nieuweWeek, PID};
-getFamilies3([X|XS],PID)->X!{nieuweWeek, PID},getFamilies3(XS,PID).
+getFamilies3([],PID) ->
+	PID!{niks};%%error control voor lege familie
+getFamilies3([X],PID) ->
+	X!{nieuweWeek, PID};
+getFamilies3([X|XS],PID) ->
+	X!{nieuweWeek, PID},getFamilies3(XS,PID).
 
 %%http://www.qlambda.com/2013/10/erlang-truncate-floating-point-number.html
 trunc(F, N) ->

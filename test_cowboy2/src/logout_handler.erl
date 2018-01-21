@@ -8,6 +8,7 @@
 init(Req0, State) ->
 	%Login
   	interface:setPersoon(undefined),
+  	%Ga naar home
   	Req = cowboy_req:reply(303,
 			 	#{<<"location">> => <<"./">>},
 				Req0),

@@ -7,18 +7,20 @@
 
 
 init(Req0, State) ->
+	%Check als iemand is ingelogd
 	Persoon = interface:getPersoon(),
 	
 	case (Persoon == undefined) of
+		%Laat homepage
 		false ->
-			io:format("loading page~n", []),
-			io:format("loading list:~n", []),
+			%Haal alle afspraken op van deze persoon
 			List = interface:get(),
-			io:format("END loading list~n", []),
+			%Haal overige informatie op uit interface
 			Gebruiker = interface:getNaamPersoon(),
 			ID = interface:getPersoon(),
 			{Tijd, Dag, LogCount} = interface:getTijdEnLog(),
 			Week = interface:getHuidigeWeek(),
+			
 			ReqProps =
 				[
 				{<<"tijd">>, Tijd},
@@ -28,19 +30,24 @@ init(Req0, State) ->
 				{<<"gebruiker">>, Gebruiker},
 				{<<"gebruiker_id">>, ID}
 				],
-			io:format("interface List ~p~n", [List]), %print out to console
-	
-			{ok, Body} = index_dtl:render([{"list", List}, {<<"req">>, ReqProps}]),	
+			
+			%Render body
+			{ok, Body} = index_dtl:render([{"list", List}, {<<"req">>, ReqProps}]),
+			%Verstuur antwoord
 			Req = cowboy_req:reply(200,
 			 	#{<<"content-type">> => <<"text/html">>},
 				Body,
 				Req0),
 			{ok, Req, State};
+		%Laat inlog-pagina
 		true ->
+			%Haal alle login namen op uit alle families
 		 	List = interface:getLoginInfo(),
 			io:format("ListInfo: ~p~n", [List]),
+			
+			%Render body
 			{ok, Body} = login_dtl:render([{"list", List}]),
-	
+			%Verstuur antwoord
 			Req = cowboy_req:reply(200,
 				#{<<"content-type">> => <<"text/html">>},
 				Body,
@@ -50,7 +57,8 @@ init(Req0, State) ->
 
 terminate(_Reason, _Req, _State) ->
 	ok.
-	
+
+%Zet dag(integer) om naar bijhorende bitstring 
 convertDag(Dag) ->
 	case Dag of
 		1 -> <<"Maandag">>;
@@ -61,6 +69,3 @@ convertDag(Dag) ->
 		6 -> <<"Zaterdag">>;
 		7 -> <<"Zondag">>
 	end.
-
-%isEmpty([]) -> true;
-%isEmpty(_) -> false.
